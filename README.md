@@ -4,7 +4,16 @@ A clean, modern REST API for managing coffee shop orders. Built with PHP 8.2, de
 
 [![CI](https://github.com/RawAuto/CoffeeShop-API/actions/workflows/ci.yml/badge.svg)](https://github.com/RawAuto/CoffeeShop-API/actions/workflows/ci.yml)
 
+## 📋 Prerequisites
+
+- **Docker Desktop** installed and running ([Download](https://www.docker.com/products/docker-desktop/))
+- **Git** for cloning the repository
+
+No PHP, MySQL, or Composer installation required — everything runs in Docker containers.
+
 ## 🚀 Quick Start
+
+### Option A: Using Make (Linux/macOS/WSL)
 
 ```bash
 # Clone the repository
@@ -18,13 +27,53 @@ make setup
 # Documentation at http://localhost:8080/docs
 ```
 
-That's it! The `make setup` command:
-1. Builds Docker containers
-2. Starts MySQL, PHP-FPM, and Nginx
+### Option B: Without Make (Windows/PowerShell)
+
+```powershell
+# Clone the repository
+git clone https://github.com/RawAuto/CoffeeShop-API.git
+cd CoffeeShop-API
+
+# Build and start containers
+docker-compose build --no-cache
+docker-compose up -d
+
+# Wait a few seconds for MySQL to initialize, then install dependencies
+docker-compose exec php composer install
+
+# API is now available at http://localhost:8080
+# Documentation at http://localhost:8080/docs
+```
+
+### Verify It's Working
+
+```bash
+# Health check (should return JSON with status "healthy")
+curl http://localhost:8080/api/health
+
+# Or just open in your browser:
+# http://localhost:8080/api/health
+```
+
+### Stopping the Application
+
+```bash
+# With Make
+make down
+
+# Without Make
+docker-compose down
+```
+
+The setup process:
+1. Builds Docker containers (PHP-FPM, Nginx, MySQL)
+2. Starts all services
 3. Installs Composer dependencies
-4. Runs database migrations
+4. Runs database migrations automatically
 
 ## 📋 Available Commands
+
+### With Make (Linux/macOS/WSL)
 
 ```bash
 make help              # Show all available commands
@@ -38,6 +87,21 @@ make test-unit         # Run unit tests only
 make test-integration  # Run integration tests only
 make analyse           # Run PHPStan static analysis
 make check             # Run static analysis + all tests
+```
+
+### Without Make (Windows/PowerShell)
+
+```powershell
+docker-compose up -d                           # Start containers
+docker-compose down                            # Stop containers
+docker-compose logs -f                         # View logs
+docker-compose exec php sh                     # Open PHP container shell
+docker-compose exec mysql mysql -u coffeeshop -psecret coffeeshop  # MySQL CLI
+docker-compose exec php composer test          # Run all tests
+docker-compose exec php composer test:unit     # Run unit tests only
+docker-compose exec php composer test:integration  # Run integration tests
+docker-compose exec php composer analyse       # Run PHPStan
+docker-compose exec php composer check         # Run analysis + tests
 ```
 
 ## ✨ PHP 8.2 Features Used
@@ -167,19 +231,19 @@ curl -X POST http://localhost:8080/api/v1/orders \
 
 ```bash
 # Run all tests
-make test
+make test                                    # or: docker-compose exec php composer test
 
 # Run only unit tests (no database required)
-make test-unit
+make test-unit                               # or: docker-compose exec php composer test:unit
 
 # Run integration tests (requires database)
-make test-integration
+make test-integration                        # or: docker-compose exec php composer test:integration
 
 # Run PHPStan static analysis (level 8)
-make analyse
+make analyse                                 # or: docker-compose exec php composer analyse
 
 # Run everything (analysis + tests)
-make check
+make check                                   # or: docker-compose exec php composer check
 ```
 
 ### Quality Tools
