@@ -2,13 +2,13 @@
 
 A clean, modern REST API for managing coffee shop orders. Built with PHP 8.2, demonstrating senior-level engineering practices including Docker, clean architecture, comprehensive testing, and CI/CD.
 
-[![CI](https://github.com/YOUR_USERNAME/CoffeeShop-API/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/CoffeeShop-API/actions/workflows/ci.yml)
+[![CI](https://github.com/RawAuto/CoffeeShop-API/actions/workflows/ci.yml/badge.svg)](https://github.com/RawAuto/CoffeeShop-API/actions/workflows/ci.yml)
 
 ## 🚀 Quick Start
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/CoffeeShop-API.git
+git clone https://github.com/RawAuto/CoffeeShop-API.git
 cd CoffeeShop-API
 
 # Start everything with one command
