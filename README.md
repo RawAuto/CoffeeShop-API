@@ -215,11 +215,21 @@ This is a demo project. For production, add:
 - HTTPS enforcement
 - Database connection pooling
 
+## 🤖 Built With AI Assistance
+
+This project was developed collaboratively with agentic AI (Claude). The AI assisted with:
+- Code generation and architecture implementation
+- Docker configuration and setup
+- Test writing and documentation
+- Debugging and refinement
+
+All architectural decisions, requirements, and code reviews were directed by a human engineer. This reflects modern development workflows where AI tools augment—but don't replace—engineering judgment and expertise.
+
 ## 📄 License
 
 MIT License - feel free to use this as a learning resource or starting point.
 
 ---
 
-Built with ❤️ to demonstrate modern PHP development practices.
+Built with ❤️ (and 🤖) to demonstrate modern PHP development practices.
 
