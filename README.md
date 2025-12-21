@@ -71,6 +71,27 @@ The setup process:
 3. Installs Composer dependencies
 4. Runs database migrations automatically
 
+## 🖥️ Demo Frontend
+
+Once running, visit **http://localhost:8080/demo** to try the interactive order management UI.
+
+| URL | Description |
+|-----|-------------|
+| [localhost:8080/demo](http://localhost:8080/demo) | Interactive order management demo |
+| [localhost:8080/docs](http://localhost:8080/docs) | Swagger API documentation |
+| [localhost:8080/api/health](http://localhost:8080/api/health) | Health check endpoint |
+
+### Demo Features
+
+- **Browse drinks menu** with sizes and prices
+- **Create orders** with multiple items, quantities, and custom cup text
+- **View all orders** in real-time with status indicators
+- **Update order status** (Pending → Preparing → Ready → Completed)
+- **Delete orders** with confirmation
+- Elegant dark theme with responsive design
+
+The demo frontend is a single HTML file with vanilla JavaScript — no build tools required. It demonstrates the full API functionality without needing Postman or curl.
+
 ## 📋 Available Commands
 
 ### With Make (Linux/macOS/WSL)
