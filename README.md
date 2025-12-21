@@ -49,7 +49,7 @@ This project leverages modern PHP 8.2 features:
 | **Enums** | `OrderStatus::Pending`, `DrinkSize::Medium`, `DrinkType::Coffee` |
 | **Readonly Classes** | `readonly class Drink`, `readonly class OrderItem` |
 | **Constructor Property Promotion** | `public function __construct(public string $name)` |
-| **Union Types** | `Order\|ValidationResult`, `OrderStatus\|string` |
+| **Union Types** | `Order|ValidationResult`, `OrderStatus|string` |
 | **Named Arguments** | `new Drink(name: 'Latte', slug: 'latte', ...)` |
 | **Nullsafe Operator** | `$this->createdAt?->format('c')` |
 | **Match Expressions** | `match ($this) { self::Small => 1.0, ... }` |
