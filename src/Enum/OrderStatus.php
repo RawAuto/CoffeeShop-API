@@ -35,12 +35,5 @@ enum OrderStatus: string
         return in_array($value, self::values(), true);
     }
 
-    /**
-     * Try to create from string, returns null if invalid
-     */
-    public static function tryFromString(string $value): ?self
-    {
-        return self::tryFrom($value);
-    }
 }
 
