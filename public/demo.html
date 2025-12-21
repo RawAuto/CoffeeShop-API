@@ -501,6 +501,14 @@
             }, 3000);
         }
 
+        // HTML escape utility to prevent XSS attacks
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = String(text);
+            return div.innerHTML;
+        }
+
         // Format price
         function formatPrice(price) {
             return `£${parseFloat(price).toFixed(2)}`;
@@ -526,9 +534,9 @@
                 <div class="drink-card ${selectedDrink?.id === drink.id ? 'selected' : ''}" 
                      data-id="${drink.id}">
                     <div class="drink-info">
-                        <h3>${drink.name}</h3>
-                        <div class="meta">${drink.type} ${drink.has_milk ? '• with milk' : ''}</div>
-                        <div class="sizes">Sizes: ${drink.allowed_sizes.join(', ')}</div>
+                        <h3>${escapeHtml(drink.name)}</h3>
+                        <div class="meta">${escapeHtml(drink.type)} ${drink.has_milk ? '• with milk' : ''}</div>
+                        <div class="sizes">Sizes: ${drink.allowed_sizes.map(s => escapeHtml(s)).join(', ')}</div>
                     </div>
                     <div class="drink-price">${formatPrice(drink.base_price)}</div>
                 </div>
@@ -546,7 +554,7 @@
         // Populate drink dropdown
         function populateDrinkSelect() {
             drinkSelect.innerHTML = '<option value="">Select a drink</option>' +
-                drinks.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+                drinks.map(d => `<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
         }
 
         // Select a drink
@@ -565,9 +573,10 @@
             }
 
             sizeSelect.innerHTML = '<option value="">Select size</option>' +
-                selectedDrink.allowed_sizes.map(size => 
-                    `<option value="${size}">${size.charAt(0).toUpperCase() + size.slice(1)}</option>`
-                ).join('');
+                selectedDrink.allowed_sizes.map(size => {
+                    const escaped = escapeHtml(size);
+                    return `<option value="${escaped}">${escaped.charAt(0).toUpperCase() + escaped.slice(1)}</option>`;
+                }).join('');
         }
 
         // Handle drink select change
@@ -601,14 +610,14 @@
             ordersEl.innerHTML = orders.map(order => `
                 <div class="order-card" data-id="${order.id}">
                     <div class="order-header">
-                        <span class="order-customer">${order.customer_name}</span>
-                        <span class="order-status ${order.status}">${order.status}</span>
+                        <span class="order-customer">${escapeHtml(order.customer_name)}</span>
+                        <span class="order-status ${escapeHtml(order.status)}">${escapeHtml(order.status)}</span>
                     </div>
                     <div class="order-items">
                         ${order.items.map(item => `
                             <div class="order-item">
-                                ${item.quantity}× ${item.drink_name} (${item.size})
-                                ${item.cup_text ? `— "${item.cup_text}"` : ''}
+                                ${item.quantity}× ${escapeHtml(item.drink_name)} (${escapeHtml(item.size)})
+                                ${item.cup_text ? `— "${escapeHtml(item.cup_text)}"` : ''}
                             </div>
                         `).join('')}
                     </div>
