@@ -11,7 +11,7 @@ use CoffeeShop\Service\ValidationResult;
 
 /**
  * Order Controller
- * 
+ *
  * Handles HTTP requests for order-related endpoints.
  */
 class OrderController extends AbstractController
@@ -25,13 +25,15 @@ class OrderController extends AbstractController
 
     /**
      * GET /api/v1/orders
-     * 
+     *
      * List all orders with pagination
+     *
+     * @param array<string, string|null> $params
      */
     public function index(Request $request, array $params): Response
     {
-        $limit = (int)($request->getQuery('limit') ?? 50);
-        $offset = (int)($request->getQuery('offset') ?? 0);
+        $limit = (int) ($request->getQuery('limit') ?? 50);
+        $offset = (int) ($request->getQuery('offset') ?? 0);
 
         // Validate pagination params
         $limit = max(1, min(100, $limit)); // Between 1 and 100
@@ -51,13 +53,15 @@ class OrderController extends AbstractController
 
     /**
      * GET /api/v1/orders/{id}
-     * 
+     *
      * Get a single order by ID
+     *
+     * @param array<string, string|null> $params
      */
     public function show(Request $request, array $params): Response
     {
         $id = $this->getIdParam($params);
-        
+
         if ($id === null) {
             return $this->invalidIdResponse();
         }
@@ -75,9 +79,9 @@ class OrderController extends AbstractController
 
     /**
      * POST /api/v1/orders
-     * 
+     *
      * Create a new order
-     * 
+     *
      * Request body:
      * {
      *   "customer_name": "John Doe",
@@ -86,6 +90,8 @@ class OrderController extends AbstractController
      *   ],
      *   "notes": "Optional notes"
      * }
+     *
+     * @param array<string, string|null> $params
      */
     public function store(Request $request, array $params): Response
     {
@@ -96,7 +102,7 @@ class OrderController extends AbstractController
         }
 
         $body = $request->getBody();
-        
+
         // Validate items is an array
         if (!is_array($body['items'])) {
             return Response::validationError('Items must be an array');
@@ -105,11 +111,11 @@ class OrderController extends AbstractController
         $result = $this->orderService->createOrder(
             customerName: $body['customer_name'],
             items: $body['items'],
-            notes: $body['notes'] ?? null
+            notes: $body['notes'] ?? null,
         );
 
         if ($result instanceof ValidationResult) {
-            return Response::validationError($result->getError());
+            return Response::validationError($result->getError() ?? 'Validation failed');
         }
 
         return Response::created(
@@ -120,20 +126,22 @@ class OrderController extends AbstractController
 
     /**
      * PUT /api/v1/orders/{id}
-     * 
+     *
      * Update an existing order
-     * 
+     *
      * Request body (all optional):
      * {
      *   "customer_name": "Jane Doe",
      *   "status": "preparing",
      *   "notes": "Updated notes"
      * }
+     *
+     * @param array<string, string|null> $params
      */
     public function update(Request $request, array $params): Response
     {
         $id = $this->getIdParam($params);
-        
+
         if ($id === null) {
             return $this->invalidIdResponse();
         }
@@ -141,11 +149,11 @@ class OrderController extends AbstractController
         $result = $this->orderService->updateOrder($id, $request->getBody());
 
         if ($result instanceof ValidationResult) {
-            // Check if it's a not found error
-            if (str_contains($result->getError(), 'not found')) {
-                return Response::notFound($result->getError());
+            $error = $result->getError() ?? 'Validation failed';
+            if ($result->isNotFound()) {
+                return Response::notFound($error);
             }
-            return Response::validationError($result->getError());
+            return Response::validationError($error);
         }
 
         return Response::json([
@@ -155,13 +163,15 @@ class OrderController extends AbstractController
 
     /**
      * DELETE /api/v1/orders/{id}
-     * 
+     *
      * Delete an order
+     *
+     * @param array<string, string|null> $params
      */
     public function destroy(Request $request, array $params): Response
     {
         $id = $this->getIdParam($params);
-        
+
         if ($id === null) {
             return $this->invalidIdResponse();
         }
@@ -175,4 +185,3 @@ class OrderController extends AbstractController
         return Response::noContent();
     }
 }
-

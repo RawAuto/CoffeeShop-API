@@ -7,9 +7,42 @@ on:
     branches: [main, master, develop]
 
 jobs:
+  static-analysis:
+    name: Static Analysis (PHPStan)
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo, pdo_mysql, mbstring
+          coverage: none
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run PHPStan
+        run: composer analyse
+
   test:
     name: PHP ${{ matrix.php }} Tests
     runs-on: ubuntu-latest
+    needs: static-analysis
     
     strategy:
       fail-fast: false
@@ -78,21 +111,7 @@ jobs:
           DB_PASSWORD: secret
         run: composer test:integration
 
-  # Placeholder for future static analysis
-  # Uncomment when ready to add PHPStan
-  #
-  # static-analysis:
-  #   name: Static Analysis
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: shivammathur/setup-php@v2
-  #       with:
-  #         php-version: '8.2'
-  #     - run: composer install --prefer-dist --no-progress
-  #     - run: composer phpstan
-
-  # Placeholder for code coverage
+  # Placeholder for code coverage (future enhancement)
   #
   # coverage:
   #   name: Code Coverage
@@ -108,4 +127,3 @@ jobs:
   #     - uses: codecov/codecov-action@v4
   #       with:
   #         files: ./coverage.xml
-

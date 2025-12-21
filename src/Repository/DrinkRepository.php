@@ -9,7 +9,7 @@ use PDO;
 
 /**
  * MySQL Drink Repository
- * 
+ *
  * Implements drink data access using MySQL database.
  */
 class DrinkRepository implements DrinkRepositoryInterface
@@ -26,14 +26,18 @@ class DrinkRepository implements DrinkRepositoryInterface
      */
     public function findAll(): array
     {
-        $sql = "SELECT * FROM drinks ORDER BY name ASC";
+        $sql = 'SELECT * FROM drinks ORDER BY name ASC';
         $stmt = $this->db->query($sql);
-        
+
+        if ($stmt === false) {
+            return [];
+        }
+
         $drinks = [];
         while ($row = $stmt->fetch()) {
             $drinks[] = Drink::fromArray($row);
         }
-        
+
         return $drinks;
     }
 
@@ -42,16 +46,16 @@ class DrinkRepository implements DrinkRepositoryInterface
      */
     public function findById(int $id): ?Drink
     {
-        $sql = "SELECT * FROM drinks WHERE id = :id LIMIT 1";
+        $sql = 'SELECT * FROM drinks WHERE id = :id LIMIT 1';
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['id' => $id]);
-        
+
         $row = $stmt->fetch();
-        
+
         if (!$row) {
             return null;
         }
-        
+
         return Drink::fromArray($row);
     }
 
@@ -60,17 +64,16 @@ class DrinkRepository implements DrinkRepositoryInterface
      */
     public function findBySlug(string $slug): ?Drink
     {
-        $sql = "SELECT * FROM drinks WHERE slug = :slug LIMIT 1";
+        $sql = 'SELECT * FROM drinks WHERE slug = :slug LIMIT 1';
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['slug' => $slug]);
-        
+
         $row = $stmt->fetch();
-        
+
         if (!$row) {
             return null;
         }
-        
+
         return Drink::fromArray($row);
     }
 }
-

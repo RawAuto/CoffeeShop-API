@@ -9,7 +9,7 @@ use CoffeeShop\Http\Response;
 
 /**
  * Base controller with common functionality
- * 
+ *
  * All API controllers should extend this class to inherit
  * common validation and response helper methods.
  */
@@ -17,10 +17,10 @@ abstract class AbstractController
 {
     /**
      * Validate required fields in request body
-     * 
+     *
      * @param Request $request
-     * @param array $fields List of required field names
-     * @return array|null Returns array of missing fields, or null if all present
+     * @param string[] $fields List of required field names
+     * @return string[]|null Returns array of missing fields, or null if all present
      */
     protected function validateRequired(Request $request, array $fields): ?array
     {
@@ -38,24 +38,28 @@ abstract class AbstractController
 
     /**
      * Get a validated integer ID from route params
+     *
+     * @param array<string, string|null> $params
      */
     protected function getIdParam(array $params, string $key = 'id'): ?int
     {
         $value = $params[$key] ?? null;
-        
+
         if ($value === null) {
             return null;
         }
 
-        if (!is_numeric($value) || (int)$value <= 0) {
+        if (!is_numeric($value) || (int) $value <= 0) {
             return null;
         }
 
-        return (int)$value;
+        return (int) $value;
     }
 
     /**
      * Return a validation error response for missing fields
+     *
+     * @param string[] $fields
      */
     protected function missingFieldsResponse(array $fields): Response
     {
@@ -73,4 +77,3 @@ abstract class AbstractController
         return Response::validationError('Invalid ID provided');
     }
 }
-

@@ -4,37 +4,46 @@ declare(strict_types=1);
 
 namespace CoffeeShop\Service;
 
+use CoffeeShop\Enum\ValidationErrorType;
+
 /**
  * Validation Result
- * 
+ *
  * A simple value object to represent the result of a validation operation.
- * Can be extended to include multiple errors if needed.
+ * Includes error type for proper HTTP status code mapping.
  */
-class ValidationResult
+readonly class ValidationResult
 {
-    private bool $valid;
-    private ?string $error;
-
-    private function __construct(bool $valid, ?string $error = null)
-    {
-        $this->valid = $valid;
-        $this->error = $error;
-    }
+    private function __construct(
+        public bool $valid,
+        public ?string $error = null,
+        public ValidationErrorType $errorType = ValidationErrorType::InvalidInput,
+    ) {}
 
     /**
      * Create a successful validation result
      */
     public static function success(): self
     {
-        return new self(true);
+        return new self(valid: true);
     }
 
     /**
      * Create a failed validation result
      */
-    public static function failure(string $error): self
+    public static function failure(
+        string $error,
+        ValidationErrorType $type = ValidationErrorType::InvalidInput,
+    ): self {
+        return new self(valid: false, error: $error, errorType: $type);
+    }
+
+    /**
+     * Create a not found validation result
+     */
+    public static function notFound(string $error): self
     {
-        return new self(false, $error);
+        return new self(valid: false, error: $error, errorType: ValidationErrorType::NotFound);
     }
 
     /**
@@ -46,11 +55,26 @@ class ValidationResult
     }
 
     /**
+     * Check if this is a not found error
+     */
+    public function isNotFound(): bool
+    {
+        return !$this->valid && $this->errorType === ValidationErrorType::NotFound;
+    }
+
+    /**
      * Get the error message (null if valid)
      */
     public function getError(): ?string
     {
         return $this->error;
     }
-}
 
+    /**
+     * Get the error type
+     */
+    public function getErrorType(): ValidationErrorType
+    {
+        return $this->errorType;
+    }
+}

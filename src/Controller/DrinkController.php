@@ -10,7 +10,7 @@ use CoffeeShop\Service\DrinkService;
 
 /**
  * Drink Controller
- * 
+ *
  * Handles HTTP requests for drink-related endpoints.
  */
 class DrinkController extends AbstractController
@@ -24,8 +24,10 @@ class DrinkController extends AbstractController
 
     /**
      * GET /api/v1/drinks
-     * 
+     *
      * List all available drinks
+     *
+     * @param array<string, string|null> $params
      */
     public function index(Request $request, array $params): Response
     {
@@ -39,13 +41,15 @@ class DrinkController extends AbstractController
 
     /**
      * GET /api/v1/drinks/{id}
-     * 
+     *
      * Get a single drink by ID
+     *
+     * @param array<string, string|null> $params
      */
     public function show(Request $request, array $params): Response
     {
         $id = $this->getIdParam($params);
-        
+
         if ($id === null) {
             return $this->invalidIdResponse();
         }
@@ -61,4 +65,3 @@ class DrinkController extends AbstractController
         ]);
     }
 }
-

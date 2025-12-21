@@ -4,44 +4,36 @@ declare(strict_types=1);
 
 namespace CoffeeShop\Entity;
 
+use CoffeeShop\Enum\OrderStatus;
+use DateTimeImmutable;
+
 /**
  * Order Entity
- * 
+ *
  * Represents a customer order containing one or more drinks.
  */
 class Order
 {
-    public const STATUS_PENDING = 'pending';
-    public const STATUS_PREPARING = 'preparing';
-    public const STATUS_READY = 'ready';
-    public const STATUS_COMPLETED = 'completed';
-    public const STATUS_CANCELLED = 'cancelled';
-
-    public const VALID_STATUSES = [
-        self::STATUS_PENDING,
-        self::STATUS_PREPARING,
-        self::STATUS_READY,
-        self::STATUS_COMPLETED,
-        self::STATUS_CANCELLED,
-    ];
-
     private ?int $id;
     private string $customerName;
-    private string $status;
+    private OrderStatus $status;
     private ?string $notes;
-    /** @var OrderItem[] */
+    /** @var list<OrderItem> */
     private array $items;
-    private ?\DateTimeImmutable $createdAt;
-    private ?\DateTimeImmutable $updatedAt;
+    private ?DateTimeImmutable $createdAt;
+    private ?DateTimeImmutable $updatedAt;
 
+    /**
+     * @param list<OrderItem> $items
+     */
     public function __construct(
         string $customerName,
-        string $status = self::STATUS_PENDING,
+        OrderStatus $status = OrderStatus::Pending,
         ?string $notes = null,
         array $items = [],
         ?int $id = null,
-        ?\DateTimeImmutable $createdAt = null,
-        ?\DateTimeImmutable $updatedAt = null
+        ?DateTimeImmutable $createdAt = null,
+        ?DateTimeImmutable $updatedAt = null,
     ) {
         $this->id = $id;
         $this->customerName = $customerName;
@@ -54,29 +46,34 @@ class Order
 
     /**
      * Create an Order entity from a database row
+     *
+     * @param array<string, mixed> $data
+     * @param list<OrderItem> $items
      */
     public static function fromArray(array $data, array $items = []): self
     {
         return new self(
             customerName: $data['customer_name'],
-            status: $data['status'] ?? self::STATUS_PENDING,
+            status: OrderStatus::tryFrom($data['status'] ?? '') ?? OrderStatus::Pending,
             notes: $data['notes'] ?? null,
             items: $items,
-            id: isset($data['id']) ? (int)$data['id'] : null,
-            createdAt: isset($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
-            updatedAt: isset($data['updated_at']) ? new \DateTimeImmutable($data['updated_at']) : null
+            id: isset($data['id']) ? (int) $data['id'] : null,
+            createdAt: isset($data['created_at']) ? new DateTimeImmutable($data['created_at']) : null,
+            updatedAt: isset($data['updated_at']) ? new DateTimeImmutable($data['updated_at']) : null,
         );
     }
 
     /**
      * Convert to array for JSON serialization
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {
         return [
             'id' => $this->id,
             'customer_name' => $this->customerName,
-            'status' => $this->status,
+            'status' => $this->status->value,
             'notes' => $this->notes,
             'items' => array_map(fn(OrderItem $item) => $item->toArray(), $this->items),
             'total' => $this->getTotal(),
@@ -92,7 +89,7 @@ class Order
     {
         $total = 0.0;
         foreach ($this->items as $item) {
-            $total += $item->getPrice() * $item->getQuantity();
+            $total += $item->price * $item->quantity;
         }
         return round($total, 2);
     }
@@ -106,11 +103,11 @@ class Order
     }
 
     /**
-     * Check if status is valid
+     * Check if status string is valid
      */
     public static function isValidStatus(string $status): bool
     {
-        return in_array($status, self::VALID_STATUSES, true);
+        return OrderStatus::isValid($status);
     }
 
     // Getters and Setters
@@ -134,17 +131,27 @@ class Order
         $this->customerName = $customerName;
     }
 
-    public function getStatus(): string
+    public function getStatus(): OrderStatus
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): void
+    public function getStatusValue(): string
     {
-        if (!self::isValidStatus($status)) {
-            throw new \InvalidArgumentException("Invalid status: $status");
+        return $this->status->value;
+    }
+
+    public function setStatus(OrderStatus|string $status): void
+    {
+        if (is_string($status)) {
+            $enumStatus = OrderStatus::tryFrom($status);
+            if ($enumStatus === null) {
+                throw new \InvalidArgumentException("Invalid status: $status");
+            }
+            $this->status = $enumStatus;
+        } else {
+            $this->status = $status;
         }
-        $this->status = $status;
     }
 
     public function getNotes(): ?string
@@ -158,16 +165,15 @@ class Order
     }
 
     /**
-     * @return OrderItem[]
+     * @return list<OrderItem>
      */
     public function getItems(): array
     {
         return $this->items;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): ?DateTimeImmutable
     {
         return $this->createdAt;
     }
 }
-

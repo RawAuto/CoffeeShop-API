@@ -1,0 +1,14 @@
+parameters:
+    level: 8
+    paths:
+        - src
+    excludePaths:
+        - src/routes.php
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: false
+    
+    # Ignore some common patterns that are false positives
+    ignoreErrors:
+        # Allow dynamic method calls in Router (controller dispatch)
+        - '#Call to an undefined method object::#'
+

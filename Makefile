@@ -2,7 +2,7 @@
 # =====================================
 # Run `make help` to see available commands
 
-.PHONY: help setup up down restart logs shell test test-unit test-integration clean
+.PHONY: help setup up down restart logs shell test test-unit test-integration analyse check clean
 
 # Default target
 help:
@@ -21,6 +21,8 @@ help:
 	@echo "  make test           - Run all tests"
 	@echo "  make test-unit      - Run unit tests only"
 	@echo "  make test-integration - Run integration tests only"
+	@echo "  make analyse        - Run PHPStan static analysis"
+	@echo "  make check          - Run static analysis + all tests"
 	@echo ""
 	@echo "  make composer-install - Install PHP dependencies"
 	@echo "  make composer-update  - Update PHP dependencies"
@@ -74,7 +76,7 @@ shell:
 mysql:
 	docker-compose exec mysql mysql -u coffeeshop -psecret coffeeshop
 
-# Testing
+# Testing & Analysis
 test:
 	docker-compose exec php composer test
 
@@ -83,6 +85,12 @@ test-unit:
 
 test-integration:
 	docker-compose exec php composer test:integration
+
+analyse:
+	docker-compose exec php composer analyse
+
+check:
+	docker-compose exec php composer check
 
 # Composer commands
 composer-install:
@@ -96,4 +104,3 @@ clean:
 	docker-compose down -v --rmi local
 	rm -rf vendor/
 	@echo "✅ Cleaned up containers, volumes, and vendor directory"
-
