@@ -1,6 +1,6 @@
 # ☕ CoffeeShop API
 
-A clean, modern REST API for managing coffee shop orders. Built with PHP 8.2, demonstrating senior-level engineering practices including Docker, clean architecture, comprehensive testing, and CI/CD.
+A clean, modern REST API for managing coffee shop orders. Built with PHP 8.2, demonstrating senior-level engineering practices including Docker, clean architecture, comprehensive testing, static analysis, and CI/CD.
 
 [![CI](https://github.com/RawAuto/CoffeeShop-API/actions/workflows/ci.yml/badge.svg)](https://github.com/RawAuto/CoffeeShop-API/actions/workflows/ci.yml)
 
@@ -27,16 +27,32 @@ That's it! The `make setup` command:
 ## 📋 Available Commands
 
 ```bash
-make help           # Show all available commands
-make up             # Start containers
-make down           # Stop containers
-make logs           # View logs
-make shell          # Open PHP container shell
-make mysql          # Open MySQL CLI
-make test           # Run all tests
-make test-unit      # Run unit tests only
+make help              # Show all available commands
+make up                # Start containers
+make down              # Stop containers
+make logs              # View logs
+make shell             # Open PHP container shell
+make mysql             # Open MySQL CLI
+make test              # Run all tests
+make test-unit         # Run unit tests only
 make test-integration  # Run integration tests only
+make analyse           # Run PHPStan static analysis
+make check             # Run static analysis + all tests
 ```
+
+## ✨ PHP 8.2 Features Used
+
+This project leverages modern PHP 8.2 features:
+
+| Feature | Example |
+|---------|---------|
+| **Enums** | `OrderStatus::Pending`, `DrinkSize::Medium`, `DrinkType::Coffee` |
+| **Readonly Classes** | `readonly class Drink`, `readonly class OrderItem` |
+| **Constructor Property Promotion** | `public function __construct(public string $name)` |
+| **Union Types** | `Order|ValidationResult`, `OrderStatus|string` |
+| **Named Arguments** | `new Drink(name: 'Latte', slug: 'latte', ...)` |
+| **Nullsafe Operator** | `$this->createdAt?->format('c')` |
+| **Match Expressions** | `match ($this) { self::Small => 1.0, ... }` |
 
 ## 🏗️ Architecture
 
@@ -44,38 +60,38 @@ make test-integration  # Run integration tests only
 ┌─────────────────────────────────────────────────────────────────┐
 │                         HTTP Request                             │
 └─────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
+                               │
+                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │  Router                                                          │
 │  - Pattern matching                                              │
 │  - Parameter extraction                                          │
 └─────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
+                               │
+                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │  Controller Layer                                                │
 │  - Request validation                                            │
 │  - Response formatting                                           │
 │  - HTTP status codes                                             │
 └─────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
+                               │
+                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │  Service Layer                                                   │
 │  - Business logic                                                │
 │  - Validation rules                                              │
 │  - Orchestration                                                 │
 └─────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
+                               │
+                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │  Repository Layer                                                │
 │  - Data access abstraction                                       │
 │  - Interface-based design                                        │
 └─────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
+                               │
+                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │  Database (MySQL 8.0)                                            │
 └─────────────────────────────────────────────────────────────────┘
@@ -93,7 +109,8 @@ CoffeeShop-API/
 │   ├── Controller/            # HTTP request handlers
 │   ├── Service/               # Business logic
 │   ├── Repository/            # Data access layer
-│   ├── Entity/                # Domain models
+│   ├── Entity/                # Domain models (readonly)
+│   ├── Enum/                  # PHP 8.1+ enums
 │   └── Http/                  # Request/Response/Router
 ├── tests/
 │   ├── Unit/                  # Unit tests
@@ -105,6 +122,7 @@ CoffeeShop-API/
 │   └── index.php              # Application entry point
 ├── docker-compose.yml
 ├── Makefile
+├── phpstan.neon               # Static analysis config
 └── phpunit.xml
 ```
 
@@ -145,7 +163,7 @@ curl -X POST http://localhost:8080/api/v1/orders \
   }'
 ```
 
-## 🧪 Testing
+## 🧪 Testing & Quality
 
 ```bash
 # Run all tests
@@ -156,7 +174,20 @@ make test-unit
 
 # Run integration tests (requires database)
 make test-integration
+
+# Run PHPStan static analysis (level 8)
+make analyse
+
+# Run everything (analysis + tests)
+make check
 ```
+
+### Quality Tools
+
+| Tool | Purpose | Level |
+|------|---------|-------|
+| **PHPUnit 10** | Unit & integration testing | - |
+| **PHPStan** | Static analysis | Level 8 (strictest) |
 
 ### Test Coverage
 
@@ -167,11 +198,12 @@ make test-integration
 
 | Technology | Why |
 |------------|-----|
-| **PHP 8.2** | Latest stable with enums, named arguments, union types |
+| **PHP 8.2** | Enums, readonly classes, constructor promotion, union types |
 | **No Framework** | Demonstrates understanding of fundamentals |
 | **MySQL 8.0** | Reliable, widely-used RDBMS |
 | **Docker** | Reproducible environments |
 | **PHPUnit 10** | Industry-standard testing |
+| **PHPStan** | Catch bugs before runtime |
 | **OpenAPI 3.0** | Standard API documentation |
 
 ## 🎯 Design Decisions
@@ -196,6 +228,14 @@ Business rules live in services, not controllers:
 - Controllers handle HTTP concerns only
 - Services are framework-agnostic
 - Easier to test business logic in isolation
+
+### Type-Safe Enums
+
+Using PHP 8.1+ enums instead of string constants:
+- Compile-time type checking
+- IDE autocomplete
+- Impossible to pass invalid values
+- Self-documenting code
 
 ## 📊 Business Rules
 
@@ -232,4 +272,3 @@ MIT License - feel free to use this as a learning resource or starting point.
 ---
 
 Built with ❤️ (and 🤖) to demonstrate modern PHP development practices.
-

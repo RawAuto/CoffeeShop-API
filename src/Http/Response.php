@@ -6,16 +6,20 @@ namespace CoffeeShop\Http;
 
 /**
  * HTTP Response wrapper
- * 
+ *
  * Provides a fluent interface for building and sending HTTP responses.
  * Handles JSON serialization and proper header management.
  */
 class Response
 {
     private int $statusCode;
+    /** @var array<string, string> */
     private array $headers;
     private mixed $body;
 
+    /**
+     * @param array<string, string> $headers
+     */
     public function __construct(mixed $body = null, int $statusCode = 200, array $headers = [])
     {
         $this->body = $body;
@@ -53,6 +57,8 @@ class Response
 
     /**
      * Create an error response
+     *
+     * @param array<string, mixed> $details
      */
     public static function error(string $message, int $statusCode = 400, array $details = []): self
     {
@@ -78,6 +84,8 @@ class Response
 
     /**
      * Create a 422 Validation Error response
+     *
+     * @param array<string, mixed> $errors
      */
     public static function validationError(string $message, array $errors = []): self
     {
@@ -141,4 +149,3 @@ class Response
         }
     }
 }
-

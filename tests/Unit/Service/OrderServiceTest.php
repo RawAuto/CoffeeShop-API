@@ -7,6 +7,9 @@ namespace CoffeeShop\Tests\Unit\Service;
 use CoffeeShop\Entity\Drink;
 use CoffeeShop\Entity\Order;
 use CoffeeShop\Entity\OrderItem;
+use CoffeeShop\Enum\DrinkSize;
+use CoffeeShop\Enum\DrinkType;
+use CoffeeShop\Enum\OrderStatus;
 use CoffeeShop\Repository\DrinkRepositoryInterface;
 use CoffeeShop\Repository\OrderRepositoryInterface;
 use CoffeeShop\Service\DrinkService;
@@ -18,14 +21,14 @@ use PHPUnit\Framework\MockObject\MockObject;
 class OrderServiceTest extends TestCase
 {
     private OrderService $service;
-    private MockObject $mockOrderRepository;
-    private MockObject $mockDrinkRepository;
+    private MockObject&OrderRepositoryInterface $mockOrderRepository;
+    private MockObject&DrinkRepositoryInterface $mockDrinkRepository;
 
     protected function setUp(): void
     {
         $this->mockOrderRepository = $this->createMock(OrderRepositoryInterface::class);
         $this->mockDrinkRepository = $this->createMock(DrinkRepositoryInterface::class);
-        
+
         $drinkService = new DrinkService($this->mockDrinkRepository);
         $this->service = new OrderService($this->mockOrderRepository, $drinkService);
     }
@@ -49,7 +52,7 @@ class OrderServiceTest extends TestCase
     public function testCreateOrderFailsWithMissingDrinkId(): void
     {
         $result = $this->service->createOrder('John Doe', [
-            ['size' => 'small']
+            ['size' => 'small'],
         ]);
 
         $this->assertInstanceOf(ValidationResult::class, $result);
@@ -59,7 +62,7 @@ class OrderServiceTest extends TestCase
     public function testCreateOrderFailsWithMissingSize(): void
     {
         $result = $this->service->createOrder('John Doe', [
-            ['drink_id' => 1]
+            ['drink_id' => 1],
         ]);
 
         $this->assertInstanceOf(ValidationResult::class, $result);
@@ -69,7 +72,7 @@ class OrderServiceTest extends TestCase
     public function testCreateOrderFailsWithInvalidSize(): void
     {
         $result = $this->service->createOrder('John Doe', [
-            ['drink_id' => 1, 'size' => 'extra-large']
+            ['drink_id' => 1, 'size' => 'extra-large'],
         ]);
 
         $this->assertInstanceOf(ValidationResult::class, $result);
@@ -83,7 +86,7 @@ class OrderServiceTest extends TestCase
             ->willReturn($this->createDrink(1, 'Espresso', ['small']));
 
         $result = $this->service->createOrder('John Doe', [
-            ['drink_id' => 1, 'size' => 'small', 'quantity' => 15]
+            ['drink_id' => 1, 'size' => 'small', 'quantity' => 15],
         ]);
 
         $this->assertInstanceOf(ValidationResult::class, $result);
@@ -99,7 +102,7 @@ class OrderServiceTest extends TestCase
             ->willReturn($this->createDrink(1, 'Espresso', ['small']));
 
         $result = $this->service->createOrder('John Doe', [
-            ['drink_id' => 1, 'size' => 'large']
+            ['drink_id' => 1, 'size' => 'large'],
         ]);
 
         $this->assertInstanceOf(ValidationResult::class, $result);
@@ -109,7 +112,7 @@ class OrderServiceTest extends TestCase
     public function testCreateOrderSucceedsWithValidData(): void
     {
         $drink = $this->createDrink(1, 'Espresso', ['small'], 2.50);
-        
+
         $this->mockDrinkRepository
             ->method('findById')
             ->with(1)
@@ -117,10 +120,10 @@ class OrderServiceTest extends TestCase
 
         $savedOrder = new Order(
             'John Doe',
-            Order::STATUS_PENDING,
+            OrderStatus::Pending,
             null,
-            [new OrderItem(1, 'small', 2.50, 1, null, 1, 1)],
-            1
+            [new OrderItem(1, DrinkSize::Small, 2.50, 1, null, 1, 1)],
+            1,
         );
 
         $this->mockOrderRepository
@@ -129,7 +132,7 @@ class OrderServiceTest extends TestCase
             ->willReturn($savedOrder);
 
         $result = $this->service->createOrder('John Doe', [
-            ['drink_id' => 1, 'size' => 'small']
+            ['drink_id' => 1, 'size' => 'small'],
         ]);
 
         $this->assertInstanceOf(Order::class, $result);
@@ -147,12 +150,13 @@ class OrderServiceTest extends TestCase
 
         $this->assertInstanceOf(ValidationResult::class, $result);
         $this->assertStringContainsString('not found', $result->getError());
+        $this->assertTrue($result->isNotFound());
     }
 
     public function testUpdateOrderFailsWithInvalidStatus(): void
     {
-        $order = new Order('John Doe', Order::STATUS_PENDING, null, [], 1);
-        
+        $order = new Order('John Doe', OrderStatus::Pending, null, [], 1);
+
         $this->mockOrderRepository
             ->method('findById')
             ->with(1)
@@ -166,8 +170,8 @@ class OrderServiceTest extends TestCase
 
     public function testUpdateOrderSucceedsWithValidStatus(): void
     {
-        $order = new Order('John Doe', Order::STATUS_PENDING, null, [], 1);
-        $updatedOrder = new Order('John Doe', Order::STATUS_PREPARING, null, [], 1);
+        $order = new Order('John Doe', OrderStatus::Pending, null, [], 1);
+        $updatedOrder = new Order('John Doe', OrderStatus::Preparing, null, [], 1);
 
         $this->mockOrderRepository
             ->method('findById')
@@ -182,7 +186,7 @@ class OrderServiceTest extends TestCase
         $result = $this->service->updateOrder(1, ['status' => 'preparing']);
 
         $this->assertInstanceOf(Order::class, $result);
-        $this->assertEquals(Order::STATUS_PREPARING, $result->getStatus());
+        $this->assertEquals(OrderStatus::Preparing, $result->getStatus());
     }
 
     public function testDeleteOrderReturnsFalseWhenNotFound(): void
@@ -213,19 +217,20 @@ class OrderServiceTest extends TestCase
 
     /**
      * Helper to create a Drink entity for testing
+     *
+     * @param string[] $allowedSizes
      */
     private function createDrink(int $id, string $name, array $allowedSizes, float $basePrice = 2.50): Drink
     {
         return new Drink(
             name: $name,
             slug: strtolower($name),
-            type: 'coffee',
+            type: DrinkType::Coffee,
             basePrice: $basePrice,
             hasMilk: false,
             allowedSizes: $allowedSizes,
             components: ['shot of coffee'],
-            id: $id
+            id: $id,
         );
     }
 }
-

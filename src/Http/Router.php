@@ -6,28 +6,19 @@ namespace CoffeeShop\Http;
 
 /**
  * Simple HTTP Router
- * 
+ *
  * Matches incoming requests to registered routes and dispatches
  * to the appropriate controller action. Supports path parameters.
  */
 class Router
 {
+    /** @var list<array{method: string, path: string, pattern: string, handler: array{0: class-string, 1: string}}> */
     private array $routes = [];
-    private static ?self $instance = null;
-
-    /**
-     * Get the singleton instance (for route registration)
-     */
-    public static function getInstance(): self
-    {
-        if (self::$instance === null) {
-            self::$instance = new self();
-        }
-        return self::$instance;
-    }
 
     /**
      * Register a GET route
+     *
+     * @param array{0: class-string, 1: string} $handler
      */
     public function get(string $path, array $handler): self
     {
@@ -36,6 +27,8 @@ class Router
 
     /**
      * Register a POST route
+     *
+     * @param array{0: class-string, 1: string} $handler
      */
     public function post(string $path, array $handler): self
     {
@@ -44,6 +37,8 @@ class Router
 
     /**
      * Register a PUT route
+     *
+     * @param array{0: class-string, 1: string} $handler
      */
     public function put(string $path, array $handler): self
     {
@@ -52,6 +47,8 @@ class Router
 
     /**
      * Register a DELETE route
+     *
+     * @param array{0: class-string, 1: string} $handler
      */
     public function delete(string $path, array $handler): self
     {
@@ -60,6 +57,8 @@ class Router
 
     /**
      * Add a route to the routing table
+     *
+     * @param array{0: class-string, 1: string} $handler
      */
     private function addRoute(string $method, string $path, array $handler): self
     {
@@ -74,7 +73,7 @@ class Router
 
     /**
      * Convert a route path to a regex pattern
-     * 
+     *
      * Examples:
      *   /api/v1/drinks -> /^\/api\/v1\/drinks$/
      *   /api/v1/drinks/{id} -> /^\/api\/v1\/drinks\/([^\/]+)$/
@@ -83,20 +82,22 @@ class Router
     {
         // Escape forward slashes
         $pattern = preg_quote($path, '/');
-        
+
         // Convert {param} to capturing groups
         $pattern = preg_replace('/\\\{([a-zA-Z_]+)\\\}/', '([^\/]+)', $pattern);
-        
+
         return '/^' . $pattern . '$/';
     }
 
     /**
      * Extract parameter names from a route path
+     *
+     * @return list<string>
      */
     private function extractParamNames(string $path): array
     {
         preg_match_all('/\{([a-zA-Z_]+)\}/', $path, $matches);
-        return $matches[1] ?? [];
+        return $matches[1];
     }
 
     /**
@@ -131,6 +132,9 @@ class Router
 
     /**
      * Call the route handler
+     *
+     * @param array{0: class-string, 1: string} $handler
+     * @param array<string, string|null> $params
      */
     private function callHandler(array $handler, Request $request, array $params): Response
     {
@@ -146,7 +150,7 @@ class Router
             return Response::error("Method not found: $controllerClass::$method", 500);
         }
 
+        /** @var Response */
         return $controller->$method($request, $params);
     }
 }
-

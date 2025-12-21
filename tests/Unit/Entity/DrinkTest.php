@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CoffeeShop\Tests\Unit\Entity;
 
 use CoffeeShop\Entity\Drink;
+use CoffeeShop\Enum\DrinkType;
 use PHPUnit\Framework\TestCase;
 
 class DrinkTest extends TestCase
@@ -65,14 +66,14 @@ class DrinkTest extends TestCase
 
         $drink = Drink::fromArray($data);
 
-        $this->assertEquals(1, $drink->getId());
-        $this->assertEquals('Espresso', $drink->getName());
-        $this->assertEquals('espresso', $drink->getSlug());
-        $this->assertEquals('coffee', $drink->getType());
-        $this->assertEquals(2.50, $drink->getBasePrice());
-        $this->assertFalse($drink->hasMilk());
-        $this->assertEquals(['small'], $drink->getAllowedSizes());
-        $this->assertEquals(['shot of coffee'], $drink->getComponents());
+        $this->assertEquals(1, $drink->id);
+        $this->assertEquals('Espresso', $drink->name);
+        $this->assertEquals('espresso', $drink->slug);
+        $this->assertEquals(DrinkType::Coffee, $drink->type);
+        $this->assertEquals(2.50, $drink->basePrice);
+        $this->assertFalse($drink->hasMilk);
+        $this->assertEquals(['small'], $drink->allowedSizes);
+        $this->assertEquals(['shot of coffee'], $drink->components);
     }
 
     public function testToArrayReturnsExpectedStructure(): void
@@ -89,20 +90,23 @@ class DrinkTest extends TestCase
         $this->assertArrayHasKey('has_milk', $array);
         $this->assertArrayHasKey('allowed_sizes', $array);
         $this->assertArrayHasKey('components', $array);
+        $this->assertEquals('coffee', $array['type']); // Enum value is serialized
     }
 
+    /**
+     * @param string[] $allowedSizes
+     */
     private function createDrink(array $allowedSizes, float $basePrice = 2.50): Drink
     {
         return new Drink(
             name: 'Test Drink',
             slug: 'test-drink',
-            type: 'coffee',
+            type: DrinkType::Coffee,
             basePrice: $basePrice,
             hasMilk: false,
             allowedSizes: $allowedSizes,
             components: ['shot of coffee'],
-            id: 1
+            id: 1,
         );
     }
 }
-

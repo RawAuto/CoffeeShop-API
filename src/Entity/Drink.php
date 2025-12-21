@@ -4,70 +4,60 @@ declare(strict_types=1);
 
 namespace CoffeeShop\Entity;
 
+use CoffeeShop\Enum\DrinkSize;
+use CoffeeShop\Enum\DrinkType;
+use DateTimeImmutable;
+
 /**
  * Drink Entity
- * 
+ *
  * Represents a drink type available in the coffee shop.
  * Contains business rules about allowed sizes and components.
  */
-class Drink
+readonly class Drink
 {
-    private ?int $id;
-    private string $name;
-    private string $slug;
-    private string $type; // 'coffee' or 'tea'
-    private float $basePrice;
-    private bool $hasMilk;
-    private array $allowedSizes;
-    private array $components;
-    private ?\DateTimeImmutable $createdAt;
-    private ?\DateTimeImmutable $updatedAt;
-
+    /**
+     * @param list<string> $allowedSizes
+     * @param list<string> $components
+     */
     public function __construct(
-        string $name,
-        string $slug,
-        string $type,
-        float $basePrice,
-        bool $hasMilk,
-        array $allowedSizes,
-        array $components,
-        ?int $id = null,
-        ?\DateTimeImmutable $createdAt = null,
-        ?\DateTimeImmutable $updatedAt = null
-    ) {
-        $this->id = $id;
-        $this->name = $name;
-        $this->slug = $slug;
-        $this->type = $type;
-        $this->basePrice = $basePrice;
-        $this->hasMilk = $hasMilk;
-        $this->allowedSizes = $allowedSizes;
-        $this->components = $components;
-        $this->createdAt = $createdAt;
-        $this->updatedAt = $updatedAt;
-    }
+        public string $name,
+        public string $slug,
+        public DrinkType $type,
+        public float $basePrice,
+        public bool $hasMilk,
+        public array $allowedSizes,
+        public array $components,
+        public ?int $id = null,
+        public ?DateTimeImmutable $createdAt = null,
+        public ?DateTimeImmutable $updatedAt = null,
+    ) {}
 
     /**
      * Create a Drink entity from a database row
+     *
+     * @param array<string, mixed> $data
      */
     public static function fromArray(array $data): self
     {
         return new self(
             name: $data['name'],
             slug: $data['slug'],
-            type: $data['type'],
-            basePrice: (float)$data['base_price'],
-            hasMilk: (bool)$data['has_milk'],
+            type: DrinkType::from($data['type']),
+            basePrice: (float) $data['base_price'],
+            hasMilk: (bool) $data['has_milk'],
             allowedSizes: json_decode($data['allowed_sizes'], true) ?? [],
             components: json_decode($data['components'], true) ?? [],
-            id: isset($data['id']) ? (int)$data['id'] : null,
-            createdAt: isset($data['created_at']) ? new \DateTimeImmutable($data['created_at']) : null,
-            updatedAt: isset($data['updated_at']) ? new \DateTimeImmutable($data['updated_at']) : null
+            id: isset($data['id']) ? (int) $data['id'] : null,
+            createdAt: isset($data['created_at']) ? new DateTimeImmutable($data['created_at']) : null,
+            updatedAt: isset($data['updated_at']) ? new DateTimeImmutable($data['updated_at']) : null,
         );
     }
 
     /**
      * Convert to array for JSON serialization
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {
@@ -75,7 +65,7 @@ class Drink
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'type' => $this->type,
+            'type' => $this->type->value,
             'base_price' => $this->basePrice,
             'has_milk' => $this->hasMilk,
             'allowed_sizes' => $this->allowedSizes,
@@ -96,55 +86,12 @@ class Drink
      */
     public function getPriceForSize(string $size): float
     {
-        $multipliers = [
-            'small' => 1.0,
-            'medium' => 1.3,
-            'large' => 1.6,
-        ];
+        $drinkSize = DrinkSize::tryFrom($size);
 
-        $multiplier = $multipliers[$size] ?? 1.0;
-        return round($this->basePrice * $multiplier, 2);
-    }
+        if ($drinkSize === null) {
+            return $this->basePrice;
+        }
 
-    // Getters
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    public function getSlug(): string
-    {
-        return $this->slug;
-    }
-
-    public function getType(): string
-    {
-        return $this->type;
-    }
-
-    public function getBasePrice(): float
-    {
-        return $this->basePrice;
-    }
-
-    public function hasMilk(): bool
-    {
-        return $this->hasMilk;
-    }
-
-    public function getAllowedSizes(): array
-    {
-        return $this->allowedSizes;
-    }
-
-    public function getComponents(): array
-    {
-        return $this->components;
+        return round($this->basePrice * $drinkSize->getPriceMultiplier(), 2);
     }
 }
-

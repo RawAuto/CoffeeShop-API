@@ -10,7 +10,7 @@ use CoffeeShop\Repository\DrinkRepositoryInterface;
 
 /**
  * Drink Service
- * 
+ *
  * Business logic for drink operations.
  */
 class DrinkService
@@ -24,7 +24,7 @@ class DrinkService
 
     /**
      * Get all available drinks
-     * 
+     *
      * @return Drink[]
      */
     public function getAllDrinks(): array
@@ -46,18 +46,18 @@ class DrinkService
     public function validateDrinkSize(int $drinkId, string $size): ValidationResult
     {
         $drink = $this->drinkRepository->findById($drinkId);
-        
+
         if ($drink === null) {
             return ValidationResult::failure("Drink with ID $drinkId not found");
         }
-        
+
         if (!$drink->isSizeAllowed($size)) {
-            $allowedSizes = implode(', ', $drink->getAllowedSizes());
+            $allowedSizes = implode(', ', $drink->allowedSizes);
             return ValidationResult::failure(
-                "Size '$size' is not available for {$drink->getName()}. Allowed sizes: $allowedSizes"
+                "Size '$size' is not available for {$drink->name}. Allowed sizes: $allowedSizes"
             );
         }
-        
+
         return ValidationResult::success();
     }
 
@@ -67,12 +67,11 @@ class DrinkService
     public function getDrinkPrice(int $drinkId, string $size): ?float
     {
         $drink = $this->drinkRepository->findById($drinkId);
-        
+
         if ($drink === null || !$drink->isSizeAllowed($size)) {
             return null;
         }
-        
+
         return $drink->getPriceForSize($size);
     }
 }
-

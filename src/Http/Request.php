@@ -6,7 +6,7 @@ namespace CoffeeShop\Http;
 
 /**
  * HTTP Request wrapper
- * 
+ *
  * Encapsulates the incoming HTTP request, providing a clean interface
  * for accessing request data without directly touching superglobals.
  */
@@ -15,16 +15,24 @@ class Request
     private string $method;
     private string $uri;
     private string $path;
+    /** @var array<string, mixed> */
     private array $query;
+    /** @var array<string, mixed> */
     private array $body;
+    /** @var array<string, string> */
     private array $headers;
 
+    /**
+     * @param array<string, mixed> $query
+     * @param array<string, mixed> $body
+     * @param array<string, string> $headers
+     */
     public function __construct(
         string $method,
         string $uri,
         array $query = [],
         array $body = [],
-        array $headers = []
+        array $headers = [],
     ) {
         $this->method = strtoupper($method);
         $this->uri = $uri;
@@ -42,11 +50,11 @@ class Request
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
         $uri = $_SERVER['REQUEST_URI'] ?? '/';
         $query = $_GET;
-        
+
         // Parse JSON body for API requests
         $body = [];
         $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
-        
+
         if (str_contains($contentType, 'application/json')) {
             $rawBody = file_get_contents('php://input');
             if ($rawBody) {
@@ -73,7 +81,10 @@ class Request
      */
     private function parsePath(string $uri): string
     {
-        $path = parse_url($uri, PHP_URL_PATH) ?? '/';
+        $path = parse_url($uri, PHP_URL_PATH);
+        if ($path === false || $path === null) {
+            return '/';
+        }
         return rtrim($path, '/') ?: '/';
     }
 
@@ -100,6 +111,9 @@ class Request
         return $this->query[$key] ?? $default;
     }
 
+    /**
+     * @return array<string, mixed>|mixed
+     */
     public function getBody(string $key = null, mixed $default = null): mixed
     {
         if ($key === null) {
@@ -119,4 +133,3 @@ class Request
         return $this->method === strtoupper($method);
     }
 }
-

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CoffeeShop\Tests\Unit\Service;
 
 use CoffeeShop\Entity\Drink;
+use CoffeeShop\Enum\DrinkType;
 use CoffeeShop\Repository\DrinkRepositoryInterface;
 use CoffeeShop\Service\DrinkService;
 use PHPUnit\Framework\TestCase;
@@ -13,7 +14,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 class DrinkServiceTest extends TestCase
 {
     private DrinkService $service;
-    private MockObject $mockRepository;
+    private MockObject&DrinkRepositoryInterface $mockRepository;
 
     protected function setUp(): void
     {
@@ -65,7 +66,7 @@ class DrinkServiceTest extends TestCase
         $result = $this->service->getDrinkById(1);
 
         $this->assertInstanceOf(Drink::class, $result);
-        $this->assertEquals('Espresso', $result->getName());
+        $this->assertEquals('Espresso', $result->name);
     }
 
     public function testValidateDrinkSizeFailsForNonexistentDrink(): void
@@ -171,19 +172,20 @@ class DrinkServiceTest extends TestCase
 
     /**
      * Helper to create a Drink entity for testing
+     *
+     * @param string[] $allowedSizes
      */
     private function createDrink(int $id, string $name, array $allowedSizes, float $basePrice = 2.50): Drink
     {
         return new Drink(
             name: $name,
             slug: strtolower($name),
-            type: 'coffee',
+            type: DrinkType::Coffee,
             basePrice: $basePrice,
             hasMilk: false,
             allowedSizes: $allowedSizes,
             components: ['shot of coffee'],
-            id: $id
+            id: $id,
         );
     }
 }
-
