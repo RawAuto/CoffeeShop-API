@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoffeeShop — Order System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #242424;
+            --bg-card: #2a2a2a;
+            --accent: #d4a574;
+            --accent-hover: #e8c49a;
+            --text-primary: #f5f5f5;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666;
+            --success: #4a9f6e;
+            --error: #c45c5c;
+            --border: #3a3a3a;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Source Sans 3', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 2rem 0;
+            text-align: center;
+        }
+
+        header h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--accent);
+            letter-spacing: 0.02em;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            font-weight: 300;
+        }
+
+        /* Main Layout */
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Sections */
+        section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        section h2 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.4rem;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Menu Grid */
+        .menu-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .drink-card {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .drink-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .drink-card.selected {
+            border-color: var(--accent);
+            background: rgba(212, 165, 116, 0.1);
+        }
+
+        .drink-info h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .drink-info .meta {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .drink-info .sizes {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .drink-price {
+            font-size: 1.1rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Order Form */
+        .order-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-group input,
+        .form-group select {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        button {
+            background: var(--accent);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 6px;
+            padding: 0.875rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background: var(--accent-hover);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Orders List */
+        .orders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .order-card {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            border: 1px solid var(--border);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .order-customer {
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        .order-status {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        .order-status.pending { background: rgba(212, 165, 116, 0.2); color: var(--accent); }
+        .order-status.preparing { background: rgba(74, 159, 110, 0.2); color: var(--success); }
+        .order-status.ready { background: rgba(74, 159, 110, 0.3); color: var(--success); }
+        .order-status.completed { background: rgba(102, 102, 102, 0.2); color: var(--text-muted); }
+
+        .order-items {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .order-item {
+            padding: 0.25rem 0;
+        }
+
+        .order-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .order-total {
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .order-actions button {
+            padding: 0.4rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn-danger {
+            background: var(--error);
+        }
+
+        .btn-danger:hover {
+            background: #d66;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin-top: 0.5rem;
+            box-shadow: 0 4px 20px var(--shadow);
+            animation: toastIn 0.3s ease;
+        }
+
+        .toast.success { border-left: 3px solid var(--success); }
+        .toast.error { border-left: 3px solid var(--error); }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>☕ CoffeeShop</h1>
+        <p>Order System Demo</p>
+    </header>
+
+    <main>
+        <!-- Left Column: Menu & Order Form -->
+        <div>
+            <section>
+                <h2>Menu</h2>
+                <div id="menu" class="menu-grid">
+                    <div class="loading">
+                        <span class="spinner"></span> Loading menu...
+                    </div>
+                </div>
+            </section>
+
+            <section style="margin-top: 2rem;">
+                <h2>New Order</h2>
+                <form id="orderForm" class="order-form">
+                    <div class="form-group">
+                        <label for="customerName">Customer Name</label>
+                        <input type="text" id="customerName" placeholder="Enter name for the cup" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="drinkSelect">Drink</label>
+                            <select id="drinkSelect" required>
+                                <option value="">Select a drink</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="sizeSelect">Size</label>
+                            <select id="sizeSelect" required>
+                                <option value="">Select size</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cupText">Cup Text (optional)</label>
+                        <input type="text" id="cupText" placeholder="Custom text for the cup">
+                    </div>
+
+                    <button type="submit" id="submitBtn">Place Order</button>
+                </form>
+            </section>
+        </div>
+
+        <!-- Right Column: Orders -->
+        <section>
+            <h2>Current Orders</h2>
+            <div id="orders" class="orders-list">
+                <div class="loading">
+                    <span class="spinner"></span> Loading orders...
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>API powered by <a href="/docs/">Swagger Documentation</a> • 
+           View <a href="/api/health">Health Status</a></p>
+    </footer>
+
+    <div id="toasts" class="toast-container"></div>
+
+    <script>
+        // API Base URL
+        const API_BASE = '/api/v1';
+
+        // State
+        let drinks = [];
+        let selectedDrink = null;
+
+        // DOM Elements
+        const menuEl = document.getElementById('menu');
+        const ordersEl = document.getElementById('orders');
+        const orderForm = document.getElementById('orderForm');
+        const drinkSelect = document.getElementById('drinkSelect');
+        const sizeSelect = document.getElementById('sizeSelect');
+        const customerNameInput = document.getElementById('customerName');
+        const cupTextInput = document.getElementById('cupText');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Toast Notification
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toasts');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Format price
+        function formatPrice(price) {
+            return `$${parseFloat(price).toFixed(2)}`;
+        }
+
+        // Load drinks from API
+        async function loadDrinks() {
+            try {
+                const response = await fetch(`${API_BASE}/drinks`);
+                const data = await response.json();
+                drinks = data.data;
+                renderMenu();
+                populateDrinkSelect();
+            } catch (error) {
+                menuEl.innerHTML = '<p class="empty-state">Failed to load menu</p>';
+                showToast('Failed to load menu', 'error');
+            }
+        }
+
+        // Render menu grid
+        function renderMenu() {
+            menuEl.innerHTML = drinks.map(drink => `
+                <div class="drink-card ${selectedDrink?.id === drink.id ? 'selected' : ''}" 
+                     data-id="${drink.id}">
+                    <div class="drink-info">
+                        <h3>${drink.name}</h3>
+                        <div class="meta">${drink.type} ${drink.has_milk ? '• with milk' : ''}</div>
+                        <div class="sizes">Sizes: ${drink.allowed_sizes.join(', ')}</div>
+                    </div>
+                    <div class="drink-price">${formatPrice(drink.base_price)}</div>
+                </div>
+            `).join('');
+
+            // Add click handlers
+            document.querySelectorAll('.drink-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const drinkId = parseInt(card.dataset.id);
+                    selectDrink(drinkId);
+                });
+            });
+        }
+
+        // Populate drink dropdown
+        function populateDrinkSelect() {
+            drinkSelect.innerHTML = '<option value="">Select a drink</option>' +
+                drinks.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+        }
+
+        // Select a drink
+        function selectDrink(drinkId) {
+            selectedDrink = drinks.find(d => d.id === drinkId);
+            drinkSelect.value = drinkId;
+            updateSizeOptions();
+            renderMenu();
+        }
+
+        // Update size options based on selected drink
+        function updateSizeOptions() {
+            if (!selectedDrink) {
+                sizeSelect.innerHTML = '<option value="">Select size</option>';
+                return;
+            }
+
+            sizeSelect.innerHTML = '<option value="">Select size</option>' +
+                selectedDrink.allowed_sizes.map(size => 
+                    `<option value="${size}">${size.charAt(0).toUpperCase() + size.slice(1)}</option>`
+                ).join('');
+        }
+
+        // Handle drink select change
+        drinkSelect.addEventListener('change', (e) => {
+            selectDrink(parseInt(e.target.value));
+        });
+
+        // Load orders from API
+        async function loadOrders() {
+            try {
+                const response = await fetch(`${API_BASE}/orders`);
+                const data = await response.json();
+                renderOrders(data.data);
+            } catch (error) {
+                ordersEl.innerHTML = '<p class="empty-state">Failed to load orders</p>';
+            }
+        }
+
+        // Render orders list
+        function renderOrders(orders) {
+            if (orders.length === 0) {
+                ordersEl.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📋</div>
+                        <p>No orders yet.<br>Place your first order!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            ordersEl.innerHTML = orders.map(order => `
+                <div class="order-card" data-id="${order.id}">
+                    <div class="order-header">
+                        <span class="order-customer">${order.customer_name}</span>
+                        <span class="order-status ${order.status}">${order.status}</span>
+                    </div>
+                    <div class="order-items">
+                        ${order.items.map(item => `
+                            <div class="order-item">
+                                ${item.quantity}× ${item.drink_name} (${item.size})
+                                ${item.cup_text ? `— "${item.cup_text}"` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="order-footer">
+                        <span class="order-total">Total: ${formatPrice(order.total)}</span>
+                        <div class="order-actions">
+                            ${order.status === 'pending' ? `
+                                <button class="btn-secondary" onclick="updateOrderStatus(${order.id}, 'preparing')">
+                                    Start
+                                </button>
+                            ` : ''}
+                            ${order.status === 'preparing' ? `
+                                <button class="btn-secondary" onclick="updateOrderStatus(${order.id}, 'ready')">
+                                    Ready
+                                </button>
+                            ` : ''}
+                            <button class="btn-danger" onclick="deleteOrder(${order.id})">×</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Submit new order
+        orderForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const customerName = customerNameInput.value.trim();
+            const drinkId = parseInt(drinkSelect.value);
+            const size = sizeSelect.value;
+            const cupText = cupTextInput.value.trim();
+
+            if (!customerName || !drinkId || !size) {
+                showToast('Please fill in all required fields', 'error');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner"></span> Placing order...';
+
+            try {
+                const response = await fetch(`${API_BASE}/orders`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        customer_name: customerName,
+                        items: [{
+                            drink_id: drinkId,
+                            size: size,
+                            quantity: 1,
+                            cup_text: cupText || null
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Failed to create order');
+                }
+
+                showToast(`Order placed for ${customerName}!`);
+                orderForm.reset();
+                selectedDrink = null;
+                renderMenu();
+                updateSizeOptions();
+                loadOrders();
+
+            } catch (error) {
+                showToast(error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Place Order';
+            }
+        });
+
+        // Update order status
+        async function updateOrderStatus(orderId, newStatus) {
+            try {
+                const response = await fetch(`${API_BASE}/orders/${orderId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update order');
+                }
+
+                showToast(`Order status: ${newStatus}`);
+                loadOrders();
+
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // Delete order
+        async function deleteOrder(orderId) {
+            try {
+                const response = await fetch(`${API_BASE}/orders/${orderId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok && response.status !== 204) {
+                    throw new Error('Failed to delete order');
+                }
+
+                showToast('Order removed');
+                loadOrders();
+
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // Initial load
+        loadDrinks();
+        loadOrders();
+
+        // Auto-refresh orders every 10 seconds
+        setInterval(loadOrders, 10000);
+    </script>
+</body>
+</html>
+
