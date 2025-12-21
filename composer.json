@@ -1,0 +1,40 @@
+{
+    "name": "coffeeshop/api",
+    "description": "A clean, modern REST API for a coffee shop ordering system",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ellie",
+            "role": "Developer"
+        }
+    ],
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": "^8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "CoffeeShop\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "CoffeeShop\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit --colors=always",
+        "test:unit": "phpunit --testsuite=Unit --colors=always",
+        "test:integration": "phpunit --testsuite=Integration --colors=always"
+    },
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true
+    }
+}
+

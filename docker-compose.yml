@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # Nginx web server
+  nginx:
+    image: nginx:alpine
+    container_name: coffeeshop-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php
+    networks:
+      - coffeeshop-network
+
+  # PHP-FPM application server
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: coffeeshop-php
+    volumes:
+      - ./:/var/www/html
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=coffeeshop
+      - DB_USERNAME=coffeeshop
+      - DB_PASSWORD=secret
+      - APP_ENV=development
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - coffeeshop-network
+
+  # MySQL database
+  mysql:
+    image: mysql:8.0
+    container_name: coffeeshop-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootsecret
+      MYSQL_DATABASE: coffeeshop
+      MYSQL_USER: coffeeshop
+      MYSQL_PASSWORD: secret
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootsecret"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - coffeeshop-network
+
+networks:
+  coffeeshop-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+
